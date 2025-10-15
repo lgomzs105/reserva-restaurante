@@ -1,0 +1,19 @@
+{
+  "name": "reserva-restaurante",
+  "version": "1.0.0",
+  "description": "Sistema web funcional full-stack en línea.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
