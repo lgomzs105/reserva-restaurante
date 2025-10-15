@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
-const { connectDB } = require("./reserva-restaurante/src/config/db");
-const reservasRouter = require("./reserva-restaurante/src/routes/reservas.routes");
-const errorHandler = require("./reserva-restaurante/src/middlewares/errorHandler");
+const { connectDB } = require("./src/config/db");
+const reservasRouter = require("./src/routes/reservas.routes");
+const errorHandler = require("./src/middlewares/errorHandler");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
