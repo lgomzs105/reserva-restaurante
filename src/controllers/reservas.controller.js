@@ -1,4 +1,4 @@
-const Reservas = require("../models/reservas.model");
+const Reserva = require("../models/reservas.model");
 
 function validarPayload(body) {
   const errors = [];
@@ -12,21 +12,37 @@ async function crearReserva(req, res, next) {
   try {
     const errors = validarPayload(req.body);
     if (errors.length) return res.status(400).json({ errors });
-    const creada = Reservas.crear(req.body);
-    res.status(201).json(creada);
+
+    const doc = await Reserva.create({
+      nombre: req.body.nombre,
+      personas: req.body.personas,
+      fechaHora: new Date(req.body.fechaHora),
+      telefono: req.body.telefono ?? null,
+      notas: req.body.notas ?? null,
+    });
+
+    res.status(201).json(doc);
   } catch (e) { next(e); }
 }
 
 async function listarReservas(req, res, next) {
   try {
     const { desde, hasta } = req.query;
-    res.json(Reservas.listar({ desde, hasta }));
+    const filter = {};
+    if (desde || hasta) {
+      filter.fechaHora = {};
+      if (desde) filter.fechaHora.$gte = new Date(desde);
+      if (hasta) filter.fechaHora.$lte = new Date(hasta);
+    }
+
+    const reservas = await Reserva.find(filter).sort({ fechaHora: 1, _id: 1 });
+    res.json(reservas);
   } catch (e) { next(e); }
 }
 
 async function obtenerReserva(req, res, next) {
   try {
-    const r = Reservas.obtener(req.params.id);
+    const r = await Reserva.findById(req.params.id);
     if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
     res.json(r);
   } catch (e) { next(e); }
@@ -34,7 +50,7 @@ async function obtenerReserva(req, res, next) {
 
 async function actualizarReserva(req, res, next) {
   try {
-    // Validación opcional: si vienen campos clave, revisarlos
+    // validaciones ligeras
     if (req.body.fechaHora && isNaN(Date.parse(req.body.fechaHora))) {
       return res.status(400).json({ error: "fechaHora debe ser ISO válida." });
     }
@@ -42,7 +58,10 @@ async function actualizarReserva(req, res, next) {
       return res.status(400).json({ error: "personas debe ser entero >= 1." });
     }
 
-    const r = Reservas.actualizar(req.params.id, req.body);
+    const patch = { ...req.body };
+    if (patch.fechaHora) patch.fechaHora = new Date(patch.fechaHora);
+
+    const r = await Reserva.findByIdAndUpdate(req.params.id, patch, { new: true });
     if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
     res.json(r);
   } catch (e) { next(e); }
@@ -50,8 +69,8 @@ async function actualizarReserva(req, res, next) {
 
 async function eliminarReserva(req, res, next) {
   try {
-    const ok = Reservas.eliminar(req.params.id);
-    if (!ok) return res.status(404).json({ error: "Reserva no encontrada" });
+    const r = await Reserva.findByIdAndDelete(req.params.id);
+    if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
     res.status(204).send();
   } catch (e) { next(e); }
 }
